@@ -1,8 +1,10 @@
-const products = require("../mocks/products.json");
+import products from '../mocks/products.json';
 
-const getProductById = (productId) => {
-  const product = products.filter((product) => product.id === productId)[0];
+export const getProductById = (productId) => {
+  const product = products.filter((_product) => _product.id === productId)[0];
   return product;
 };
 
-module.exports.getProductById = getProductById;
+export default {
+  getProductById,
+};

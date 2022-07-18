@@ -1,8 +1,6 @@
-"use strict";
+import products from '../mocks/products.json';
 
-const products = require("../mocks/products.json");
-
-module.exports.default = async (event) => {
+export default async () => {
   return {
     statusCode: 200,
     body: JSON.stringify(products),

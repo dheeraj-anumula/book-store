@@ -18,7 +18,9 @@ service: book-store
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
-frameworkVersion: "3"
+frameworkVersion: '3'
+plugins:
+  - serverless-webpack
 
 provider:
   name: aws
@@ -27,6 +29,11 @@ provider:
   # you can overwrite defaults here
   stage: dev
   region: ap-south-1
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
 
 # you can add statements to the Lambda function's IAM Role here
 #  iam:
@@ -61,8 +68,8 @@ functions:
     handler: getProductsById/handler.default
     package:
       patterns:
-        - "getProductsById/**"
-        - "mocks/**"
+        - 'getProductsById/**'
+        - 'mocks/**'
     events:
       - http:
           path: products/{productId}
@@ -72,8 +79,8 @@ functions:
     handler: getProductsList/handler.default
     package:
       patterns:
-        - "getProductsList/**"
-        - "mocks/**"
+        - 'getProductsList/**'
+        - 'mocks/**'
     events:
       - http:
           path: products
