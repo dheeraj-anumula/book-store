@@ -51,9 +51,10 @@ provider:
 #    variable1: value1
 
 # you can add packaging information here
-# package:
-#   patterns:
-#     - mock/**
+package:
+  individually: true
+  exclude:
+    - ./**
 
 functions:
   getProductsById:
@@ -61,7 +62,7 @@ functions:
     package:
       patterns:
         - "getProductsById/**"
-        - "mock/**"
+        - "mocks/**"
     events:
       - http:
           path: products/{productId}
@@ -72,7 +73,7 @@ functions:
     package:
       patterns:
         - "getProductsList/**"
-        - "mock/**"
+        - "mocks/**"
     events:
       - http:
           path: products
