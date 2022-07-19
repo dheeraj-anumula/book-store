@@ -11,6 +11,9 @@ module.exports = {
     // We no not want to minimize our code.
     minimize: false,
   },
+  resolve: {
+    extensions: ['.mjs', '.json', '.ts', '.js'],
+  },
   performance: {
     // Turn off size warnings for entry points
     hints: false,
@@ -21,7 +24,7 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /swagger/],
         use: [
           {
             loader: 'babel-loader',

@@ -20,7 +20,9 @@ service: book-store
 # Check out our docs for more details
 frameworkVersion: '3'
 plugins:
+  - serverless-auto-swagger
   - serverless-webpack
+  - serverless-offline
 
 provider:
   name: aws
@@ -34,6 +36,15 @@ custom:
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
+  autoswagger:
+    title: 'Product store'
+    apiType: 'http'
+    typefiles: ['types/product.ts']
+    generateSwaggerOnDeploy: true
+    swaggerPath: 'swagger'
+    basePath: '/dev'
+    host: 'os1u2n4md2.execute-api.ap-south-1.amazonaws.com'
+    schemes: ['https']
 
 # you can add statements to the Lambda function's IAM Role here
 #  iam:
@@ -74,6 +85,12 @@ functions:
       - http:
           path: products/{productId}
           method: get
+          responseData:
+            {
+              200: { description: 'Successfull response for product', bodyType: Product },
+              400: { description: 'Bad request: productId is required' },
+              404: { description: 'Product is not found' },
+            }
 
   getProductsList:
     handler: getProductsList/handler.default
@@ -85,6 +102,8 @@ functions:
       - http:
           path: products
           method: get
+          responseData:
+            { 200: { description: 'Successfull response for products', bodyType: Products } }
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
