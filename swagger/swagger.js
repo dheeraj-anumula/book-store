@@ -64,49 +64,7 @@
       }
     }
   },
-  "definitions": {
-    "Product": {
-      "properties": {
-        "count": {
-          "title": "Product.count",
-          "type": "number"
-        },
-        "description": {
-          "title": "Product.description",
-          "type": "string"
-        },
-        "id": {
-          "title": "Product.id",
-          "type": "string"
-        },
-        "price": {
-          "title": "Product.price",
-          "type": "number"
-        },
-        "title": {
-          "title": "Product.title",
-          "type": "string"
-        }
-      },
-      "required": [
-        "count",
-        "description",
-        "id",
-        "price",
-        "title"
-      ],
-      "additionalProperties": false,
-      "title": "Product",
-      "type": "object"
-    },
-    "Products": {
-      "items": {
-        "$ref": "#/definitions/Product"
-      },
-      "title": "Products",
-      "type": "array"
-    }
-  },
+  "definitions": {},
   "securityDefinitions": {},
   "basePath": "/dev",
   "host": "os1u2n4md2.execute-api.ap-south-1.amazonaws.com",
