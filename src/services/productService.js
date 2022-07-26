@@ -11,7 +11,7 @@ export default class ProductService {
 
   async getAllProducts() {
     const query = {
-      text: `SELECT * FROM ${this.productTableName} p LEFT JOIN stock s ON p.id = s.product_id`,
+      text: `SELECT * FROM ${this.productTableName} p INNER JOIN stock s ON p.id = s.product_id`,
     };
     logger.logInfo(`Executing query - ${query.text}`);
     const result = await this.databaseClient.query(query);
@@ -21,7 +21,7 @@ export default class ProductService {
 
   async getProductsById(productId) {
     const query = {
-      text: `SELECT * FROM ${this.productTableName} p LEFT JOIN stock s ON p.id = s.product_id WHERE p.id = $1`,
+      text: `SELECT * FROM ${this.productTableName} p INNER JOIN stock s ON p.id = s.product_id WHERE p.id = $1`,
       values: [productId],
     };
     logger.logInfo(`Executing query - ${query.text}`);
@@ -38,16 +38,21 @@ export default class ProductService {
       const productInsertValues = [product.title, product.description, product.price];
       const stockInsert = `INSERT INTO ${this.stockTableName}(product_id, count) VALUES ($1, $2)`;
 
+      logger.logInfo(`Executing query - ${productInsert}`);
+      logger.logInfo(`Executing query - ${stockInsert}`);
+
       const createdProduct = await this.databaseClient.query(productInsert, productInsertValues);
       const stockInsertValues = [createdProduct.rows[0].id, product.count];
 
       await this.databaseClient.query(stockInsert, stockInsertValues);
+      logger.logInfo('Executing query - COMMIT');
       await this.databaseClient.query('COMMIT');
 
       return createdProduct.rows[0].id;
-    } catch (e) {
+    } catch (error) {
+      logger.logInfo('Executing query - ROLLBACK');
       await this.databaseClient.query('ROLLBACK');
-      throw e;
+      throw error;
     }
   }
 }

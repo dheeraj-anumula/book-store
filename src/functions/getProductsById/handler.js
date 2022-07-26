@@ -1,5 +1,7 @@
+import validator from '@middy/validator';
 import createError from 'http-errors';
 import lambdaMiddleware from '../../libs/lambdaMiddleware';
+import schema from '../../libs/schemas/createProductSchema';
 import ProductService from '../../services/productService';
 import logger from '../../utils/logger';
 
@@ -32,4 +34,8 @@ const handler = async (event) => {
   }
 };
 
-export default lambdaMiddleware(handler);
+export default lambdaMiddleware(handler).use(
+  validator({
+    inputSchema: schema,
+  })
+);

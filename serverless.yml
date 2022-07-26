@@ -50,7 +50,7 @@ custom:
   autoswagger:
     title: 'Product store'
     apiType: 'http'
-    typefiles: ['types/product.ts']
+    typefiles: ['src/types/product.ts']
     generateSwaggerOnDeploy: true
     swaggerPath: 'swagger'
     basePath: '/${self:provider.stage}'
@@ -70,30 +70,48 @@ functions:
     handler: src/functions/getProductsById/handler.default
     package:
       patterns:
-        - 'getProductsById/**'
-        - 'mocks/**'
+        - 'src/functions/getProductsById/**'
     events:
       - http:
           path: products/{productId}
-          method: get
+          method: GET
           cors: true
           responseData:
             {
               200: { description: 'Successfull response for product', bodyType: Product },
               400: { description: 'Bad request: productId is required' },
               404: { description: 'Product is not found' },
+              500: { description: 'Internal server error' },
             }
 
   getProductsList:
     handler: src/functions/getProductsList/handler.default
     package:
       patterns:
-        - 'getProductsList/**'
-        - 'mocks/**'
+        - 'src/functions/getProductsList/**'
     events:
       - http:
           path: products
-          method: get
+          method: GET
           cors: true
           responseData:
-            { 200: { description: 'Successfull response for products', bodyType: Products } }
+            {
+              200: { description: 'Successfull response for products', bodyType: Products },
+              500: { description: 'Internal server error' },
+            }
+  createProduct:
+    handler: src/functions/createProduct/handler.default
+    package:
+      patterns:
+        - 'src/functions/createProduct/**'
+    events:
+      - http:
+          path: products
+          method: POST
+          cors: true
+          responseData:
+            {
+              201: { description: 'Product successfully created', bodyType: Products },
+              400: { description: 'Bad request' },
+              500: { description: 'Internal server error' },
+            }
