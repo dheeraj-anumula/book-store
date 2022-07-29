@@ -1,15 +1,17 @@
 const schema = {
+  type: 'object',
   properties: {
-    queryStringParameters: {
+    pathParameters: {
       type: 'object',
       properties: {
         productId: {
           type: 'string',
         },
       },
+      required: ['productId'],
     },
   },
-  required: ['queryStringParameters'],
+  required: ['pathParameters'],
 };
 
 export default schema;

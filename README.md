@@ -1,3 +1,3 @@
-# book-store
+# product-service
 
 task 4

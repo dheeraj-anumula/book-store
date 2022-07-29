@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: book-store
+service: product-service
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -29,13 +29,15 @@ useDotenv: true
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
 
   # you can overwrite defaults here
   stage: '${opt:stage, "dev"}'
   region: ap-south-1
 
   environment:
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000'
     PGHOST: ${env:PGHOST}
     PGUSER: ${env:PGUSER}
     PGDATABASE: ${env:PGDATABASE}
@@ -54,7 +56,7 @@ custom:
     generateSwaggerOnDeploy: true
     swaggerPath: 'swagger'
     basePath: '/${self:provider.stage}'
-    host: 'os1u2n4md2.execute-api.ap-south-1.amazonaws.com'
+    host: '8ui2filzzh.execute-api.ap-south-1.amazonaws.com'
     schemes: ['https']
 
 # you can add packaging information here
@@ -62,8 +64,6 @@ package:
   individually: true
   exclude:
     - ./**
-
-stages: ['dev', 'prod']
 
 functions:
   getProductsById:
@@ -109,6 +109,7 @@ functions:
           path: products
           method: POST
           cors: true
+          bodyType: PartialProduct
           responseData:
             {
               201: { description: 'Product successfully created', bodyType: Products },

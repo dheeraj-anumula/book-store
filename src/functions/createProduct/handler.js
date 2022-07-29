@@ -7,13 +7,16 @@ import logger from '../../utils/logger';
 
 export const createProduct = async (event) => {
   try {
-    logger.logInfo(`POST /products request ${event}`);
+    const { body, queryParameters, pathParameters } = event;
+    logger.logRequest(
+      `POST /products request body:${body}, queryParameters: ${queryParameters}, pathParameters: ${pathParameters}`
+    );
 
     const { title, description, price, count } = event.body;
     const productService = new ProductService();
-    const product = await productService.createProduct(title, description, price, count);
+    const product = await productService.createProduct({ title, description, price, count });
 
-    logger.logInfo('Product is created : ', product);
+    logger.logInfo(`Product is created : ${JSON.stringify(product)}`);
 
     return {
       statusCode: 201,

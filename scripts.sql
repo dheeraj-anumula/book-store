@@ -7,7 +7,7 @@ create table products (
     price integer
 );
 
-create table store (
+create table stock (
 	product_id uuid REFERENCES products(id),
     count integer
 );

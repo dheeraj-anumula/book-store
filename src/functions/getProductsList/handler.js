@@ -5,7 +5,10 @@ import logger from '../../utils/logger';
 
 const handler = async (event) => {
   try {
-    logger.logRequest(`GET /products request ${event}`);
+    const { body, queryParameters, pathParameters } = event;
+    logger.logRequest(
+      `GET /products request body:${body}, queryParameters: ${queryParameters}, pathParameters: ${pathParameters}`
+    );
 
     const productService = new ProductService();
     const products = await productService.getAllProducts();

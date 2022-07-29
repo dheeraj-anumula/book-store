@@ -3,7 +3,7 @@ import logger from '../utils/logger';
 
 export default class ProductService {
   constructor() {
-    this.productTableName = 'product';
+    this.productTableName = 'products';
     this.stockTableName = 'stock';
     const databaseConnection = new DatabaseConnection();
     this.databaseClient = databaseConnection.getDatabaseClient();
@@ -34,21 +34,22 @@ export default class ProductService {
     try {
       await this.databaseClient.query('BEGIN');
 
-      const productInsert = `INSERT INTO ${this.productTableName}(title, description, price) VALUES ($1, $2, $3) RETURNING id`;
+      const productInsert = `INSERT INTO ${this.productTableName}(title, description, price) VALUES ($1, $2, $3) RETURNING id, title, description, price, count`;
       const productInsertValues = [product.title, product.description, product.price];
       const stockInsert = `INSERT INTO ${this.stockTableName}(product_id, count) VALUES ($1, $2)`;
 
       logger.logInfo(`Executing query - ${productInsert}`);
-      logger.logInfo(`Executing query - ${stockInsert}`);
 
       const createdProduct = await this.databaseClient.query(productInsert, productInsertValues);
       const stockInsertValues = [createdProduct.rows[0].id, product.count];
+
+      logger.logInfo(`Executing query - ${stockInsert}`);
 
       await this.databaseClient.query(stockInsert, stockInsertValues);
       logger.logInfo('Executing query - COMMIT');
       await this.databaseClient.query('COMMIT');
 
-      return createdProduct.rows[0].id;
+      return createdProduct.rows[0];
     } catch (error) {
       logger.logInfo('Executing query - ROLLBACK');
       await this.databaseClient.query('ROLLBACK');
