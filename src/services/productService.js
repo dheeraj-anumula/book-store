@@ -34,7 +34,7 @@ export default class ProductService {
     try {
       await this.databaseClient.query('BEGIN');
 
-      const productInsert = `INSERT INTO ${this.productTableName}(title, description, price) VALUES ($1, $2, $3) RETURNING id, title, description, price, count`;
+      const productInsert = `INSERT INTO ${this.productTableName}(title, description, price) VALUES ($1, $2, $3) RETURNING id, title, description, price`;
       const productInsertValues = [product.title, product.description, product.price];
       const stockInsert = `INSERT INTO ${this.stockTableName}(product_id, count) VALUES ($1, $2)`;
 
