@@ -12,10 +12,10 @@ const schema = {
           type: 'string',
         },
         price: {
-          type: 'string',
+          type: 'number',
         },
         count: {
-          type: 'string',
+          type: 'integer',
         },
       },
       required: ['title', 'description', 'price', 'count'],
