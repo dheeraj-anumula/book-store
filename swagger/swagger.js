@@ -37,6 +37,9 @@
           },
           "404": {
             "description": "Product is not found"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
@@ -59,6 +62,45 @@
             "schema": {
               "$ref": "#/definitions/Products"
             }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "createProduct",
+        "description": "",
+        "operationId": "createProduct.post.products",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Body required in the request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PartialProduct"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Product successfully created",
+            "schema": {
+              "$ref": "#/definitions/Products"
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
@@ -105,11 +147,40 @@
       },
       "title": "Products",
       "type": "array"
+    },
+    "PartialProduct": {
+      "properties": {
+        "count": {
+          "title": "PartialProduct.count",
+          "type": "number"
+        },
+        "description": {
+          "title": "PartialProduct.description",
+          "type": "string"
+        },
+        "price": {
+          "title": "PartialProduct.price",
+          "type": "number"
+        },
+        "title": {
+          "title": "PartialProduct.title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "count",
+        "description",
+        "price",
+        "title"
+      ],
+      "additionalProperties": false,
+      "title": "PartialProduct",
+      "type": "object"
     }
   },
   "securityDefinitions": {},
   "basePath": "/dev",
-  "host": "os1u2n4md2.execute-api.ap-south-1.amazonaws.com",
+  "host": "8ui2filzzh.execute-api.ap-south-1.amazonaws.com",
   "schemes": [
     "https"
   ]

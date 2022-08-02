@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: book-store
+service: product-service
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -20,53 +20,44 @@ service: book-store
 # Check out our docs for more details
 frameworkVersion: '3'
 plugins:
+  - serverless-dotenv-plugin
   - serverless-auto-swagger
   - serverless-webpack
   - serverless-offline
 
+useDotenv: true
+
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
 
   # you can overwrite defaults here
-  stage: dev
+  stage: '${opt:stage, "dev"}'
   region: ap-south-1
+
+  environment:
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000'
+    PGHOST: ${env:PGHOST}
+    PGUSER: ${env:PGUSER}
+    PGDATABASE: ${env:PGDATABASE}
+    PGPASSWORD: ${env:PGPASSWORD}
+    PGPORT: ${env:PGPORT}
 
 custom:
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
+  currentStage: '${opt:stage, self:provider.stage}'
   autoswagger:
     title: 'Product store'
     apiType: 'http'
-    typefiles: ['types/product.ts']
+    typefiles: ['src/types/product.ts']
     generateSwaggerOnDeploy: true
     swaggerPath: 'swagger'
-    basePath: '/dev'
-    host: 'os1u2n4md2.execute-api.ap-south-1.amazonaws.com'
+    basePath: '/${self:provider.stage}'
+    host: '8ui2filzzh.execute-api.ap-south-1.amazonaws.com'
     schemes: ['https']
-
-# you can add statements to the Lambda function's IAM Role here
-#  iam:
-#    role:
-#      statements:
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:ListBucket"
-#          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:PutObject"
-#          Resource:
-#            Fn::Join:
-#              - ""
-#              - - "arn:aws:s3:::"
-#                - "Ref" : "ServerlessDeploymentBucket"
-#                - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
 
 # you can add packaging information here
 package:
@@ -76,82 +67,52 @@ package:
 
 functions:
   getProductsById:
-    handler: getProductsById/handler.default
+    handler: src/functions/getProductsById/handler.default
     package:
       patterns:
-        - 'getProductsById/**'
-        - 'mocks/**'
+        - 'src/functions/getProductsById/**'
     events:
       - http:
           path: products/{productId}
-          method: get
+          method: GET
+          cors: true
           responseData:
             {
               200: { description: 'Successfull response for product', bodyType: Product },
               400: { description: 'Bad request: productId is required' },
               404: { description: 'Product is not found' },
+              500: { description: 'Internal server error' },
             }
 
   getProductsList:
-    handler: getProductsList/handler.default
+    handler: src/functions/getProductsList/handler.default
     package:
       patterns:
-        - 'getProductsList/**'
-        - 'mocks/**'
+        - 'src/functions/getProductsList/**'
     events:
       - http:
           path: products
-          method: get
+          method: GET
+          cors: true
           responseData:
-            { 200: { description: 'Successfull response for products', bodyType: Products } }
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
-#    events:
-#      - httpApi:
-#          path: /users/create
-#          method: get
-#      - websocket: $connect
-#      - s3: ${env:BUCKET}
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill: amzn1.ask.skill.xx-xx-xx-xx
-#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
-#      - iot:
-#          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
-#      - cloudwatchLog: '/aws/lambda/hello'
-#      - cognitoUserPool:
-#          pool: MyUserPool
-#          trigger: PreSignUp
-#      - alb:
-#          listenerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:listener/app/my-load-balancer/50dc6c495c0c9188/
-#          priority: 1
-#          conditions:
-#            host: example.com
-#            path: /hello
-
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+            {
+              200: { description: 'Successfull response for products', bodyType: Products },
+              500: { description: 'Internal server error' },
+            }
+  createProduct:
+    handler: src/functions/createProduct/handler.default
+    package:
+      patterns:
+        - 'src/functions/createProduct/**'
+    events:
+      - http:
+          path: products
+          method: POST
+          cors: true
+          bodyType: PartialProduct
+          responseData:
+            {
+              201: { description: 'Product successfully created', bodyType: Products },
+              400: { description: 'Bad request' },
+              500: { description: 'Internal server error' },
+            }
