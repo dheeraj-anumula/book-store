@@ -2,10 +2,5 @@
 node_modules
 jspm_packages
 
-swagger
-
 # Serverless directories
 .serverless
-
-.*
-*.py
