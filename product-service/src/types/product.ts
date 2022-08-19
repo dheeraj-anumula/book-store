@@ -6,3 +6,10 @@ export interface Product {
   title: string;
 }
 export type Products = Array<Product>;
+
+export interface PartialProduct {
+  count: number;
+  description: string;
+  price: number;
+  title: string;
+}

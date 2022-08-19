@@ -11,106 +11,69 @@
 #
 # Happy Coding!
 
-service: book-store
+service: import-service
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
-frameworkVersion: '3'
+frameworkVersion: "3"
+
 plugins:
-  - serverless-auto-swagger
-  - serverless-webpack
-  - serverless-offline
+  - serverless-esbuild
 
 provider:
   name: aws
-  runtime: nodejs12.x
-
-  # you can overwrite defaults here
-  stage: dev
+  runtime: nodejs14.x
+  stage: '${opt:stage, "dev"}'
   region: ap-south-1
 
-custom:
-  webpack:
-    webpackConfig: ./webpack.config.js
-    includeModules: true
-  autoswagger:
-    title: 'Product store'
-    apiType: 'http'
-    typefiles: ['types/product.ts']
-    generateSwaggerOnDeploy: true
-    swaggerPath: 'swagger'
-    basePath: '/dev'
-    host: 'os1u2n4md2.execute-api.ap-south-1.amazonaws.com'
-    schemes: ['https']
-
-# you can add statements to the Lambda function's IAM Role here
-#  iam:
-#    role:
-#      statements:
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:ListBucket"
-#          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:PutObject"
-#          Resource:
-#            Fn::Join:
-#              - ""
-#              - - "arn:aws:s3:::"
-#                - "Ref" : "ServerlessDeploymentBucket"
-#                - "/*"
+  # you can add statements to the Lambda function's IAM Role here
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:ListBucket"
+          Resource: arn:aws:s3:::import-service-node-in-aws
+        - Effect: "Allow"
+          Action:
+            - "s3:*"
+          Resource: "arn:aws:s3:::import-service-node-in-aws/*"
 
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
 
 # you can add packaging information here
-package:
-  individually: true
-  exclude:
-    - ./**
+#package:
+#  patterns:
+#    - '!exclude-me.js'
+#    - '!exclude-me-dir/**'
+#    - include-me.js
+#    - include-me-dir/**
 
 functions:
-  getProductsById:
-    handler: getProductsById/handler.default
-    package:
-      patterns:
-        - 'getProductsById/**'
-        - 'mocks/**'
+  importProductsFile:
+    handler: src/functions/importProductsFile.default
     events:
       - http:
-          path: products/{productId}
-          method: get
-          responseData:
-            {
-              200: { description: 'Successfull response for product', bodyType: Product },
-              400: { description: 'Bad request: productId is required' },
-              404: { description: 'Product is not found' },
-            }
-
-  getProductsList:
-    handler: getProductsList/handler.default
-    package:
-      patterns:
-        - 'getProductsList/**'
-        - 'mocks/**'
+          path: /import
+          method: GET
+          request:
+            parameters:
+              querystrings:
+                name: true
+  importFileParser:
+    handler: src/functions/importFileParser.default
     events:
-      - http:
-          path: products
-          method: get
-          responseData:
-            { 200: { description: 'Successfull response for products', bodyType: Products } }
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
-#    events:
-#      - httpApi:
-#          path: /users/create
-#          method: get
+      - s3:
+          bucket: import-service-node-in-aws
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+          existing: true
 #      - websocket: $connect
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
