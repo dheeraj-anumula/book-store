@@ -29,6 +29,15 @@ provider:
   stage: '${opt:stage, "dev"}'
   region: ap-south-1
 
+  environment:
+    REGION: "${self:provider.region}"
+    SQS_NEW_PRODUCT_URL:
+      Ref: NewProductSQSQueue
+    CATALOG_QUEUE_URL:
+      "Fn::ImportValue": "catalogItemsQueueUrl-${opt:stage, self:provider.stage}"
+    CATALOG_QUEUE_ARN:
+      "Fn::ImportValue": "catalogItemsQueueArn-${opt:stage, self:provider.stage}"
+
   # you can add statements to the Lambda function's IAM Role here
   iam:
     role:
@@ -41,6 +50,11 @@ provider:
           Action:
             - "s3:*"
           Resource: "arn:aws:s3:::import-service-node-in-aws/*"
+        - Effect: "Allow"
+          Action:
+            - "sqs:*"
+          Resource:
+            "Fn::ImportValue": "catalogItemsQueueArn-${opt:stage, self:provider.stage}"
 
 # you can define service wide environment variables here
 #  environment:
@@ -108,13 +122,13 @@ functions:
 #      variable2: value2
 
 # you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+resources:
+  Resources:
+    NewProductSQSQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: catalogItemsQueue
+  Outputs:
+    NewProductSQSQueueArn:
+      Value:
+        "Fn::GetAtt": [NewProductSQSQueue, Arn]
