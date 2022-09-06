@@ -1,0 +1,21 @@
+{
+  "name": "authorization-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "dependencies": {
+    "@middy/core": "^3.1.0",
+    "@middy/http-json-body-parser": "^3.1.0",
+    "serverless-dotenv-plugin": "^4.0.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.15.7",
+    "serverless-esbuild": "^1.32.8"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
