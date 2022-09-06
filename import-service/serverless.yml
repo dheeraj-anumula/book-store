@@ -79,6 +79,14 @@ functions:
             parameters:
               querystrings:
                 name: true
+          cors: true,
+          authorizer:
+            name: "basicAuthorizer"
+            arn:
+              "Fn::ImportValue": "authorization-service-basicAuthorizerArn-${opt:stage, self:provider.stage}"
+            resultTtlInSeconds: 0
+            identitySource: "method.request.header.Authorization"
+            type: "request"
   importFileParser:
     handler: src/functions/importFileParser.default
     events:
