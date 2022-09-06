@@ -42,6 +42,7 @@
     "@middy/http-event-normalizer": "^3.1.0",
     "@middy/http-json-body-parser": "^3.1.0",
     "@middy/validator": "^3.1.0",
+    "aws-sdk": "^2.1205.0",
     "http-errors": "^2.0.0",
     "pg": "^8.7.3",
     "source-map-support": "^0.5.21",

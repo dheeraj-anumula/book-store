@@ -1,9 +1,13 @@
 import { S3 } from "@aws-sdk/client-s3";
+import SQSService from "../services/SQSService";
 import csv from "csv-parser";
 import { BUCKET } from "../constants";
+import logger from "../services/logger";
 
 export const importFileParser = async (event) => {
-  console.log(JSON.stringify(event.Records));
+  logger.logInfo(JSON.stringify(event.Records));
+
+  const sqsService = new SQSService();
   let statusCode = 202;
   try {
     const s3Client = new S3();
@@ -16,7 +20,8 @@ export const importFileParser = async (event) => {
     const response = await s3Client.getObject(params);
     const results = [];
     for await (const chunk of response.Body.pipe(csv())) {
-      console.log(JSON.stringify(chunk));
+      logger.logInfo(JSON.stringify(chunk));
+      await sqsService.sendSqsMessage(chunk);
       results.push(chunk);
     }
 
@@ -30,7 +35,7 @@ export const importFileParser = async (event) => {
     await s3Client.deleteObject(params);
   } catch (err) {
     statusCode = 500;
-    console.log(err);
+    logger.logError("SQS error: ", JSON.stringify(err));
   }
   return {
     statusCode,

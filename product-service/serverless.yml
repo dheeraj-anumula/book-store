@@ -43,6 +43,62 @@ provider:
     PGDATABASE: ${env:PGDATABASE}
     PGPASSWORD: ${env:PGPASSWORD}
     PGPORT: ${env:PGPORT}
+    REGION: '${self:provider.region}'
+    SNS_CREATE_PRODUCT_TOPIC_ARN:
+      Ref: createProductTopic1
+
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action: 'sns:*'
+          Resource:
+            Ref: createProductTopic1
+
+resources:
+  Resources:
+    catalogItemsQueue:
+      Type: 'AWS::SQS::Queue'
+      Properties:
+        QueueName: 'sqs-queue-${self:provider.stage}-catalogItemsQueue'
+    createProductTopic1:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: createProductTopic1
+    createProductTopicSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn:
+          Ref: 'createProductTopic1'
+        Protocol: 'email'
+        Endpoint: '${env:EMAIL_ADDRESS1}'
+        FilterPolicy:
+          price:
+            - numeric: ['<', 1000]
+    createProductTopicFilteredSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: ${env:EMAIL_ADDRESS2}
+        Protocol: email
+        TopicArn:
+          Ref: 'createProductTopic1'
+        FilterPolicy:
+          price:
+            - numeric: ['>=', 1000]
+  Outputs:
+    catalogItemsQueueUrl:
+      Description: 'SQS URL'
+      Value:
+        Ref: 'catalogItemsQueue'
+      Export:
+        Name: 'catalogItemsQueueUrl-${opt:stage, self:provider.stage}'
+
+    catalogItemsQueueArn:
+      Description: 'SQS Arn value'
+      Value:
+        Fn::GetAtt: [catalogItemsQueue, Arn]
+      Export:
+        Name: 'catalogItemsQueueArn-${opt:stage, self:provider.stage}'
 
 custom:
   webpack:
@@ -116,3 +172,11 @@ functions:
               400: { description: 'Bad request' },
               500: { description: 'Internal server error' },
             }
+  catalogBatchProcess:
+    handler: src/functions/catalogBatchProcess/handler.default
+    events:
+      - sqs:
+          batchSize: 5
+          arn:
+            Fn::GetAtt: ['catalogItemsQueue', 'Arn']
+          maximumBatchingWindow: 60
