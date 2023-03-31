@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: import-service
+service: authorization-service
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -20,9 +20,6 @@ service: import-service
 # Check out our docs for more details
 frameworkVersion: "3"
 
-plugins:
-  - serverless-esbuild
-
 provider:
   name: aws
   runtime: nodejs14.x
@@ -30,31 +27,32 @@ provider:
   region: ap-south-1
 
   environment:
-    REGION: "${self:provider.region}"
-    SQS_NEW_PRODUCT_URL:
-      Ref: NewProductSQSQueue
-    CATALOG_QUEUE_URL:
-      "Fn::ImportValue": "catalogItemsQueueUrl-${opt:stage, self:provider.stage}"
-    CATALOG_QUEUE_ARN:
-      "Fn::ImportValue": "catalogItemsQueueArn-${opt:stage, self:provider.stage}"
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    NODE_OPTIONS: "--enable-source-maps --stack-trace-limit=1000"
 
-  # you can add statements to the Lambda function's IAM Role here
-  iam:
-    role:
-      statements:
-        - Effect: "Allow"
-          Action:
-            - "s3:ListBucket"
-          Resource: arn:aws:s3:::import-service-node-in-aws
-        - Effect: "Allow"
-          Action:
-            - "s3:*"
-          Resource: "arn:aws:s3:::import-service-node-in-aws/*"
-        - Effect: "Allow"
-          Action:
-            - "sqs:*"
-          Resource:
-            "Fn::ImportValue": "catalogItemsQueueArn-${opt:stage, self:provider.stage}"
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-esbuild
+
+useDotenv: true
+
+# you can add statements to the Lambda function's IAM Role here
+#  iam:
+#    role:
+#      statements:
+#        - Effect: "Allow"
+#          Action:
+#            - "s3:ListBucket"
+#          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+#        - Effect: "Allow"
+#          Action:
+#            - "s3:PutObject"
+#          Resource:
+#            Fn::Join:
+#              - ""
+#              - - "arn:aws:s3:::"
+#                - "Ref" : "ServerlessDeploymentBucket"
+#                - "/*"
 
 # you can define service wide environment variables here
 #  environment:
@@ -67,35 +65,24 @@ provider:
 #    - '!exclude-me-dir/**'
 #    - include-me.js
 #    - include-me-dir/**
+package:
+  individually: true
 
 functions:
-  importProductsFile:
-    handler: src/functions/importProductsFile.default
+  basicAuthorizer:
+    handler: src/functions/basicAuthorizer.default
     events:
       - http:
-          path: /import
-          method: GET
-          request:
-            parameters:
-              querystrings:
-                name: true
-          cors: true,
-          authorizer:
-            name: "basicAuthorizer"
-            arn:
-              "Fn::ImportValue": "authorization-service-basicAuthorizerArn-${opt:stage, self:provider.stage}"
-            resultTtlInSeconds: 0
-            identitySource: "method.request.header.Authorization"
-            type: "request"
-  importFileParser:
-    handler: src/functions/importFileParser.default
-    events:
-      - s3:
-          bucket: import-service-node-in-aws
-          event: s3:ObjectCreated:*
-          rules:
-            - prefix: uploaded/
-          existing: true
+          method: "post"
+          path: "auth"
+          cors: true
+#    The following are a few example events you can configure
+#    NOTE: Please make sure to change your handler code to work with those events
+#    Check the event documentation for details
+#    events:
+#      - httpApi:
+#          path: /users/create
+#          method: get
 #      - websocket: $connect
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
@@ -128,15 +115,33 @@ functions:
 #    Define function environment variables here
 #    environment:
 #      variable2: value2
-
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude: ["aws-sdk"]
+    target: "node14"
+    define: { "require.resolve": undefined }
+    platform: "node"
+    concurrency: 10
 # you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+
 resources:
-  Resources:
-    NewProductSQSQueue:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: catalogItemsQueue
   Outputs:
-    NewProductSQSQueueArn:
+    basicAuthorizerLambdaArn:
+      Description: "Basic Authorizer lambda ARN"
       Value:
-        "Fn::GetAtt": [NewProductSQSQueue, Arn]
+        "Fn::GetAtt": ["BasicAuthorizerLambdaFunction", "Arn"]
+      Export:
+        Name: "${self:service}-basicAuthorizerArn-${opt:stage, self:provider.stage}"
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"

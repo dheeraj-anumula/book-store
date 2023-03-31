@@ -37,7 +37,10 @@ export const importProductsFile = async (event) => {
 
   return {
     statusCode,
-    headers: { "Access-Control-Allow-Origin": "*" },
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": true,
+    },
     body,
   };
 };
